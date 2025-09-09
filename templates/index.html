@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GuardIO - Verificador de Segurança de Sites</title>
+  <link rel="icon" type="image/x-icon" href="/assets/icons/favicon.ico">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #e2e7ec;
+      color: gray;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    
+    .main-header {
+      width: 100%;
+      background-color: #0f7396;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .logo-container {
+      display: flex;
+      align-items: center;
+    }
+    
+    .logo-container h2 {
+      margin: 0;
+      margin-left: 10px;
+      font-size: 1.5rem;
+      color: white;
+    }
+    
+    .nav {
+      font-size: 14px;
+    }
+    
+    .nav a {
+      color: rgba(255,255,255,0.9);
+      text-decoration: none;
+      margin: 0 5px;
+    }
+    
+    .container {
+      max-width: 600px;
+      width: 100%;
+      padding: 20px;
+      text-align: center;
+      margin-top: 20px;
+    }
+    
+    .logo {
+      max-width: 40px;
+    }
+    
+    .container .logo {
+      max-width: 180px;
+      margin-bottom: 30px;
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+    
+    .subtitle {
+      font-size: 1.1rem;
+      font-weight: normal;
+      margin-bottom: 40px;
+      opacity: 0.9;
+    }
+    
+    .search-box {
+      display: flex;
+      background: white;
+      border-radius: 50px;
+      overflow: hidden;
+      margin: 20px auto;
+      max-width: 500px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      align-items: center;
+    }
+    
+    input {
+      flex: 1;
+      padding: 15px 20px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+      background: transparent;
+      height: 44px;
+      box-sizing: border-box;
+    }
+    
+    .search-button {
+      width: 44px;
+      height: 44px;
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      margin: 0;
+      align-self: stretch;
+    }
+    
+    .search-icon {
+      width: 20px;
+      height: 20px;
+      color: #777;
+    }
+    
+    button {
+      padding: 15px 25px;
+      background-color: #0d6efd;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    
+    button:hover {
+      background-color: #bbbdc3;
+    }
+    
+    #result {
+      margin-top: 30px;
+      padding: 15px;
+      border-radius: 4px;
+    }
+    
+    .reliable {
+      background-color: rgba(40, 167, 69, 0.2);
+      border-left: 4px solid #28a745;
+    }
+    
+    .acceptable {
+      background-color: rgba(255, 193, 7, 0.2);
+      border-left: 4px solid #ffc107;
+    }
+    
+    .suspect {
+      background-color: rgba(220, 53, 69, 0.2);
+      border-left: 4px solid #dc3545;
+    }
+  </style>
+</head>
+<body>
+  <header class="main-header">
+    <div class="header-content">
+      <div class="logo-container">
+        <img src="/assets/images/logo_guard_io.png" alt="GuardIO Logo" class="logo">
+        <h2>Guard IO</h2>
+      </div>
+    </div>
+  </header>
+  
+  <div class="container">
+    <h1>Verificador de Confiabilidade de Sites e Lojas</h1>
+    <p class="subtitle">Verifique se este site é seguro e não está listado como suspeito</p>
+    
+    <div class="search-box">
+      <input type="text" id="urlInput" placeholder="Digite o domínio..." onkeypress="handleKeyPress(event)">
+      <button class="search-button" onclick="checkUrl()">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </button>
+    </div>
+    
+    <div id="result" style="display:none;"></div>
+  </div>
+
+  <script>
+    function handleKeyPress(event) {
+      if (event.key === 'Enter') {
+        checkUrl();
+      }
+    }
+
+    async function checkUrl() {
+      const url = document.getElementById("urlInput").value;
+      
+      if (!url) {
+        alert("Por favor, insira uma URL válida");
+        return;
+      }
+      
+      try {
+        const response = await fetch("/check_url", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({ url })
+        });
+        
+        const data = await response.json();
+        const resultDiv = document.getElementById("result");
+        
+        resultDiv.style.display = "block";
+        
+        let statusMessage = "";
+        let className = "";
+        
+        if (data.status === "reliable") {
+          className = "reliable";
+          statusMessage = "✅ Confiável";
+        } else if (data.status === "acceptable") {
+          className = "acceptable";
+          statusMessage = "⚠️ Atenção - Verifique os problemas encontrados";
+        } else if (data.status === "suspect") {
+          className = "suspect";
+          statusMessage = "❌ Possivelmente Malicioso - Não recomendado";
+        } else if (data.status === "invalid") {
+          className = "suspect";
+          statusMessage = "❌ URL Inválida";
+        }
+        
+        resultDiv.className = className;
+        
+        let issuesText = "";
+        if (data.issues && data.issues.length > 0) {
+          const issuesList = data.issues.map(issue => `<li>${issue}</li>`).join('');
+          issuesText = `<p><strong>Problemas encontrados:</strong></p><ul>${issuesList}</ul>`;
+        } else {
+          issuesText = "<p><strong>Nenhum problema encontrado</strong></p>";
+        }
+        
+        const maxScore = data.status === "invalid" ? "0" : "100";
+
+        resultDiv.innerHTML = `
+          <h3>Resultado da Verificação</h3>
+          <p><strong>Status:</strong> ${statusMessage}</p>
+          <p><strong>Domínio:</strong> ${data.domain || "N/A"}</p>
+          <p><strong>Pontuação de Segurança:</strong> ${data.score}/${maxScore}</p>
+          ${issuesText}
+        `;
+      } catch (error) {
+        console.error("Erro ao verificar URL:", error);
+        const resultDiv = document.getElementById("result");
+        resultDiv.innerHTML = "❌ Erro ao processar sua solicitação. Tente novamente.";
+        resultDiv.style.display = "block";
+        resultDiv.className = "suspect";
+      }
+    }
+  </script>
+</body>
+</html>

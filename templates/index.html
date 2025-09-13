@@ -160,6 +160,37 @@
       background-color: rgba(220, 53, 69, 0.2);
       border-left: 4px solid #dc3545;
     }
+
+    .loading {
+      display: none;
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #0f7396;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: #777;
+      font-size: 14px;
+    }
+
+    .search-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -186,6 +217,11 @@
       </button>
     </div>
     
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">Verificando segurança do site...</div>
+    </div>
+    
     <div id="result" style="display:none;"></div>
   </div>
 
@@ -198,11 +234,19 @@
 
     async function checkUrl() {
       const url = document.getElementById("urlInput").value;
+      const loadingDiv = document.getElementById("loading");
+      const resultDiv = document.getElementById("result");
+      const searchButton = document.querySelector(".search-button");
       
       if (!url) {
         alert("Por favor, insira uma URL válida");
         return;
       }
+      
+      // Mostrar loading e desabilitar botão
+      loadingDiv.style.display = "block";
+      resultDiv.style.display = "none";
+      searchButton.disabled = true;
       
       try {
         const response = await fetch("/check_url", {
@@ -212,7 +256,10 @@
         });
         
         const data = await response.json();
-        const resultDiv = document.getElementById("result");
+        
+        // Esconder loading e habilitar botão
+        loadingDiv.style.display = "none";
+        searchButton.disabled = false;
         
         resultDiv.style.display = "block";
         
@@ -254,7 +301,11 @@
         `;
       } catch (error) {
         console.error("Erro ao verificar URL:", error);
-        const resultDiv = document.getElementById("result");
+        
+        // Esconder loading e habilitar botão em caso de erro
+        loadingDiv.style.display = "none";
+        searchButton.disabled = false;
+        
         resultDiv.innerHTML = "❌ Erro ao processar sua solicitação. Tente novamente.";
         resultDiv.style.display = "block";
         resultDiv.className = "suspect";
